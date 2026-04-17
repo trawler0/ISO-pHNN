@@ -1,3 +1,0 @@
-python main.py --name motor --num_trajectories 8 --num_val_trajectories 100 --lr 1e-3 --epochs 8000 --repeat 1 --J default  --R default  --G mlp --output-weight .25 --run_name mlp --experiment mlp_vs_kan_6
-python main.py --name motor --num_trajectories 8 --num_val_trajectories 100 --lr 1e-3 --epochs 2000 --repeat 1 --J default_kan  --R default_kan  --G kan --grad_H gradient_kan  --output-weight .25 --run_name kan --experiment mlp_vs_kan_6 --hidden_dim 8
-python main.py --name motor --num_trajectories 8 --num_val_trajectories 100 --lr 1e-3 --epochs 8000 --repeat 1 --J default  --R linear  --G linear --grad_H linear --output-weight .25 --run_name prior --experiment mlp_vs_kan_6 --weight_decay 1e-3 --no-normalize-x
