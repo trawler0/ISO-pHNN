@@ -143,6 +143,9 @@ class Baseline(nn.Module):
         xu = torch.cat([x, u], dim=-1)
         out = self.mlp(xu)
         return out[:, :-u_dim], out[:, -u_dim:]
+    
+    def get_params(self):
+        return self.parameters()
 
 
 
@@ -476,11 +479,11 @@ class RDefault(nn.Module):
         R = R_ @ R_.permute(0, 2, 1) / math.sqrt(d)
         return R
 
-class AbsActivation(nn.Module):
+class HuberActivation(nn.Module):
     """Absolute-value activation used to enforce nonnegativity."""
 
     def forward(self, x):
-        return torch.abs(x)
+        return F.huber_loss(x, torch.zeros_like(x), reduction="none")
 
 class Grad_H_positive(nn.Module):
     """
@@ -501,9 +504,9 @@ class Grad_H_positive(nn.Module):
     def __init__(self, input_dim, hidden_dim, depth, arch="mlp"):
         super().__init__()
         if arch == "mlp":
-            self.H = nn.Sequential(MLP(input_dim, hidden_dim, 1, depth), AbsActivation())
+            self.H = nn.Sequential(MLP(input_dim, hidden_dim, 1, depth), HuberActivation())
         elif arch == "kan":
-            self.H = nn.Sequential(KAN([input_dim] + [hidden_dim] * depth + [1]), AbsActivation())
+            self.H = nn.Sequential(KAN([input_dim] + [hidden_dim] * depth + [1]), HuberActivation())
 
     def forward(self, x):
         """
@@ -889,10 +892,12 @@ class PHNNModel(nn.Module):
 
         if grad_H == "gradient":
             self.grad_H = Grad_H(input_dim, hidden_dim, depth)
-        elif grad_H == "gradient_positive":
-            self.grad_H = Grad_H_positive(input_dim, hidden_dim, depth)
         elif grad_H == "gradient_kan":
             self.grad_H = Grad_H(input_dim, hidden_dim, depth, arch="kan")
+        elif grad_H == "gradient_positive":
+            self.grad_H = Grad_H_positive(input_dim, hidden_dim, depth)
+        elif grad_H == "gradient_kan_positive":
+            self.grad_H = Grad_H_positive(input_dim, hidden_dim, depth, arch="kan")
         elif grad_H == "linear":
             self.grad_H = Grad_HLinear(input_dim)
         else:
@@ -906,6 +911,31 @@ class PHNNModel(nn.Module):
             self.G = GLinear(input_dim * u_dim)
         else:
             raise ValueError("Unknown G")
+        
+    def get_params(self):
+        if isinstance(self.J, JLinear) or isinstance(self.J, JSpring):
+            J_params = {"params": self.J.parameters(), "weight_decay": 0}
+        else:
+            J_params = {"params": self.J.parameters()}
+        
+        if isinstance(self.R, RLinear) or isinstance(self.R, RQuadratic):
+            R_params = {"params": self.R.parameters(), "weight_decay": 0}
+        else:
+            R_params = {"params": self.R.parameters()}
+
+        if isinstance(self.grad_H, Grad_HLinear):
+            H_params = {"params": self.grad_H.parameters(), "weight_decay": 0}
+        else:
+            H_params = {"params": self.grad_H.parameters()}
+
+        if isinstance(self.G, GLinear):
+            G_params = {"params": self.G.parameters(), "weight_decay": 0}
+        else:
+            G_params = {"params": self.G.parameters()}
+
+        params = [J_params, R_params, H_params, G_params]
+        return params
+            
 
     def forward(self, x, u):
         """

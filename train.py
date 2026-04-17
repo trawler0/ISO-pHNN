@@ -14,6 +14,8 @@ def train(model, train_loader, val_loader, epochs, output_weight=0.25, loss_fn="
         Model that returns (xdot_hat, y_hat).
     train_loader : torch.utils.data.DataLoader
         Data loader yielding (X, u, xdot, y) batches.
+    val_loader : torch.utils.data.DataLoader
+        Data loader yielding (X, u, xdot, y) batches.
     epochs : int
         Number of training epochs.
     output_weight : float, optional
@@ -22,6 +24,10 @@ def train(model, train_loader, val_loader, epochs, output_weight=0.25, loss_fn="
         Loss choice: "mse" or "normalized_mse".
     device : str or torch.device or None, optional
         Device for training. If None, uses the model's current device.
+    weight decay : float, optional
+        epresenting the AdamW weight decay
+    validation_frequency:  int, optional
+        how often to evaluate the model
     """
     if validation_frequency is None:
         validation_frequency = 10**100
@@ -37,7 +43,7 @@ def train(model, train_loader, val_loader, epochs, output_weight=0.25, loss_fn="
         raise NotImplementedError("Loss function not implemented")
     from utils import normalized_mae as mae_fn
     # --- optimizer ---
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=weight_decay)
+    optimizer = torch.optim.AdamW(model.get_params(), lr=1e-3, weight_decay=weight_decay)
 
     # --- scheduler: cosine with 10% warmup, per-step ---
     total_steps = epochs * max(1, len(train_loader))

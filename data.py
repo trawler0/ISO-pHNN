@@ -161,7 +161,6 @@ class BaseDataGenerator:
         trajectories = []
         for j, x0 in enumerate(tqdm(X0)):
             u = self.generate_signal(seed=j+self.start_seed) if self.generate_signal is not None else None
-            u = self.generate_signal(seed=j+self.start_seed) if self.generate_signal is not None else None
             X, u, signal = self.generate_trajectory(x0, u)
             #xdot = (X[1:] - X[:-1]) / dt      -    this is not any good
             xdot = self.__call__(X[:-1], u[:-1])
@@ -388,7 +387,7 @@ class PMSM(BaseDataGenerator):
 
 
 
-def simple_experiment(name, simulation_time, num_steps, amplitude, f0, **kwargs):
+def simple_experiment(name, simulation_time, num_steps, amplitude, f0, start_seed, **kwargs):
     """
     Construct a data generator for a named experiment.
 
@@ -420,7 +419,7 @@ def simple_experiment(name, simulation_time, num_steps, amplitude, f0, **kwargs)
         if mlflow.active_run():
             mlflow.log_params({"data_masses": masses, "data_spring_constants": spring_constants, "data_damping": damping, "data_G": G})
         get_u = partial(multi_sin_signal, n_signals=2, amplitude=amplitude, f_0=f0)
-        return CoupledSpringMassDamper(G, masses, spring_constants, damping, simulation_time, num_steps, get_u)
+        return CoupledSpringMassDamper(G, masses, spring_constants, damping, simulation_time, num_steps, get_u, start_seed=start_seed)
     elif name == "ball":
         m = kwargs.pop("m", .1)
         R = kwargs.pop("R", .1)
@@ -429,7 +428,7 @@ def simple_experiment(name, simulation_time, num_steps, amplitude, f0, **kwargs)
         if mlflow.active_run():
             mlflow.log_params({"data_m": m, "data_R": R, "data_c": c, "data_G": G})
         get_u = partial(multi_sin_signal, amplitude=amplitude, f_0=f0)
-        return MagneticBall(m, R, c, G, simulation_time, num_steps, get_u)
+        return MagneticBall(m, R, c, G, simulation_time, num_steps, get_u, start_seed=start_seed)
     elif name == "motor":
         J_m = kwargs.pop("J_m", 0.012)
         L = kwargs.pop("L", 0.0038)
@@ -440,9 +439,7 @@ def simple_experiment(name, simulation_time, num_steps, amplitude, f0, **kwargs)
         if mlflow.active_run():
             mlflow.log_params({"data_J_m": J_m, "data_L": L, "data_beta": beta, "data_r": r, "data_Phi": Phi})
         get_u = partial(multi_sin_signal, n_signals=2, amplitude=amplitude, f_0=f0)
-        return PMSM(J_m, L, beta, r, Phi, G, simulation_time, num_steps, get_u)
-    else:
-        raise NotImplementedError("Experiment not implemented")
+        return PMSM(J_m, L, beta, r, Phi, G, simulation_time, num_steps, get_u, start_seed=start_seed)
 
 def dim_bias_scale_sigs(name):
     """
@@ -494,7 +491,7 @@ if __name__ == "__main__":
 
     dim, scale, bias, sigs, amplitude_train, f0_train, amplitude_val, f0_val = dim_bias_scale_sigs("spring")
     generator = simple_experiment("spring", 20, 1000, amplitude_train, f0_train)
-    X0 = sample_initial_states(100, 4, {"identifies": "uniform", "seed": 41, "scale": scale, "bias": bias})
+    X0 = sample_initial_states(10, 4, {"identifies": "uniform", "seed": 41, "scale": scale, "bias": bias})
     X, u, xdot, y, trajectories = generator.get_data(X0)
     a = get_noise_bound(u, 5)
 
@@ -521,4 +518,4 @@ if __name__ == "__main__":
             #ax[i].plot(xdot[:, i], label=f"Xdot_{i}", color="blue")
         for i in range(u.shape[-1]):
             ax[i + X.shape[-1]].plot(u[:, i], label=f"u_{i}", color="green")
-        plt.show()
+        plt.savefig("fig.png")

@@ -1,8 +1,0 @@
-# sigmoid
-python main.py --name spring --num_trajectories 1 --num_val_trajectories 1000 --lr 1e-3 --epochs 10000 --repeat 50 --J sigmoid  --R sigmoid  --G mlp --output-weight .25 --run_name spring_sigmoid_1 --experiment sigmoid
-python main.py --name spring --num_trajectories 3 --num_val_trajectories 1000 --lr 1e-3 --epochs 3000 --repeat 20 --J sigmoid  --R sigmoid  --G mlp --output-weight .25 --run_name spring_sigmoid_3 --experiment sigmoid
-python main.py --name spring --num_trajectories 10 --num_val_trajectories 1000 --lr 1e-3 --epochs 1000 --repeat 10 --J sigmoid  --R sigmoid  --G mlp --output-weight .25 --run_name spring_sigmoid_10 --experiment sigmoid
-python main.py --name spring --num_trajectories 30 --num_val_trajectories 1000 --lr 1e-3 --epochs 500 --repeat 5 --J sigmoid  --R sigmoid  --G mlp --output-weight .25 --run_name spring_sigmoid_30 --experiment sigmoid
-python main.py --name spring --num_trajectories 100 --num_val_trajectories 1000 --lr 1e-3 --epochs 200 --repeat 1 --J sigmoid  --R sigmoid  --G mlp --output-weight .25 --run_name spring_sigmoid_100 --experiment sigmoid
-python main.py --name spring --num_trajectories 300 --num_val_trajectories 1000 --lr 1e-3 --epochs 100 --repeat 1 --J sigmoid  --R sigmoid  --G mlp --output-weight .25 --run_name spring_sigmoid_300 --experiment sigmoid
-python main.py --name spring --num_trajectories 1000 --num_val_trajectories 1000 --lr 1e-3 --epochs 50 --repeat 1 --J sigmoid  --R sigmoid  --G mlp --output-weight .25 --run_name spring_sigmoid_1000 --experiment sigmoid

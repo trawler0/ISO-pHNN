@@ -1,2 +1,3 @@
-python main.py --name spring --num_trajectories 16 --num_val_trajectories 100 --lr 1e-3 --epochs 5000 --repeat 1 --J linear  --R default  --G linear --grad_H linear --output-weight .25 --run_name prior --experiment prior_vs_default_1 --weight_decay 1e-3 --no-normalize-u --no-normalize-x
-python main.py --name spring --num_trajectories 16 --num_val_trajectories 100 --lr 1e-3 --epochs 5000 --repeat 1 --J default  --R default  --G mlp --output-weight .25 --run_name default --experiment prior_vs_default_1
+python main.py --name spring --num_trajectories 32 --num_val_trajectories 100 --hidden_dim 16 --lr 1e-3 --epochs 4000 --repeat 1 --J default  --R default  --G mlp --output-weight .25 --run_name default --experiment prior_vs_default_f
+python main.py --name spring --num_trajectories 32 --num_val_trajectories 100 --hidden_dim 16 --lr 1e-3 --epochs 4000 --repeat 1 --J linear  --R default  --G linear --grad_H linear --output-weight .25 --run_name prior --experiment prior_vs_default_f --no-normalize-x
+  
