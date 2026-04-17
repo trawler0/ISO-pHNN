@@ -10,10 +10,11 @@ import mlflow
 import argparse
 import random
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--name", type=str, default="spring", help="Problem name: spring, ball, motor.")
-parser.add_argument("--num_trajectories", type=int, default=32, help="Number of training trajectories.")
+parser.add_argument("--num_trajectories", type=int, default=16, help="Number of training trajectories.")
 parser.add_argument("--num_val_trajectories", type=int, default=100, help="Number of validation trajectories.")
 parser.add_argument("--hidden_dim", type=int, default=32, help="Hidden layer width.")
 parser.add_argument("--depth", type=int, default=3, help="Number of hidden layers.")
@@ -28,11 +29,11 @@ parser.add_argument("--val_time", type=float, default=100, help="Validation simu
 parser.add_argument("--steps", type=int, default=None, help="Training data steps per trajectory; defaults to 100 * time.")
 parser.add_argument("--val_steps", type=int, default=None, help="Validation data steps per trajectory; defaults to 100 * val_time.")
 parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate.")
-parser.add_argument("--epochs", type=int, default=1000, help="Number of training epochs.")
+parser.add_argument("--epochs", type=int, default=500, help="Number of training epochs.")
 parser.add_argument("--criterion", type=str, default="normalized_mse", help="Loss criterion: mse or normalized_mse.")
 parser.add_argument("--batch_size", type=int, default=256, help="Batch size.")
 parser.add_argument("--val_batch_size", type=int, default=16384, help="validation Batch size.")
-parser.add_argument("--seed", type=int, default=1, help="Random seed.")
+parser.add_argument("--seed", type=int, default=1000, help="Random seed.")
 parser.add_argument("--repeat", type=int, default=1, help="Concatenate the dataset N times and train for N times fewer epochs.")
 parser.add_argument("--weight_decay", type=float, default=1e-2, help="Weight decay for optimizer.")
 parser.add_argument("--forecast_examples", type=int, default=20, help="Number of trajectories to visualize.")
@@ -53,7 +54,7 @@ parser.add_argument("--normalize-xdot", action="store_true", default=False, help
 parser.add_argument("--integrator", default="RK45", type=str, help="Forecast integrator: RK45, RK4 or IMPLICIT_MIDPOINT.")
 parser.add_argument("--device", type=str, default="cpu", help="Device used for training.")
 parser.add_argument("--validation-frequency", type=int, default=None, help="How often to validate the model.")
-
+parser.add_argument("--dataset", type=str, default=None)
 
 args = parser.parse_args()
 
@@ -85,17 +86,52 @@ dt = time / steps
 name = args.name
 DIM, scale, bias, sigs, amplitude_train, f0_train, amplitude_val, f0_val = dim_bias_scale_sigs(name)
 
-generator = simple_experiment(name, time, steps, amplitude_train, f0_train)
-generator_val = simple_experiment(name, args.val_time, val_steps, amplitude_val, f0_val, start_seed=args.num_trajectories)
+if args.dataset is None:
+    generator = simple_experiment(name, time, steps, amplitude_train, f0_train, start_seed=args.seed)
+    generator_val = simple_experiment(name, args.val_time, val_steps, amplitude_val, f0_val, start_seed=args.seed+10**6)
 
-X0_train = sample_initial_states(args.num_trajectories, DIM,
-                                    {"identifies": "uniform", "seed": args.seed, "scale": scale, "bias": bias})
-X0_val = sample_initial_states(args.num_val_trajectories, DIM,
-                                {"identifies": "uniform", "seed": args.seed + 1, "scale": scale, "bias": bias})
+    X0_train = sample_initial_states(args.num_trajectories, DIM,
+                                        {"identifies": "uniform", "seed": args.seed, "scale": scale, "bias": bias})
+    X0_val = sample_initial_states(args.num_val_trajectories, DIM,
+                                {"identifies": "uniform", "seed": args.seed + 10**6, "scale": scale, "bias": bias})
+    
 
-X, u, xdot, y, _ = generator.get_data(X0_train)
-X_val, u_val, xdot_val, y_val, trajectories_val = generator_val.get_data(X0_val)
+    X, u, xdot, y, _ = generator.get_data(X0_train)
+    X_val, u_val, xdot_val, y_val, _ = generator_val.get_data(X0_val)
+else:
+    exists = os.path.exists(args.dataset)
+    print(args.dataset)
+    if exists:
+        data = np.load(args.dataset, allow_pickle=True).item()
+        X, u, xdot, y = data["X"], data["u"], data["xdot"], data["y"]
+        X_val, u_val, xdot_val, y_val = data["X_val"], data["u_val"], data["xdot_val"], data["y_val"]
+    else:
+        generator = simple_experiment(name, time, steps, amplitude_train, f0_train, start_seed=args.seed)
+        generator_val = simple_experiment(name, args.val_time, val_steps, amplitude_val, f0_val, start_seed=args.seed+10**6)
 
+        X0_train = sample_initial_states(args.num_trajectories, DIM,
+                                            {"identifies": "uniform", "seed": args.seed, "scale": scale, "bias": bias})
+        X0_val = sample_initial_states(args.num_val_trajectories, DIM,
+                                        {"identifies": "uniform", "seed": args.seed + 10**6, "scale": scale, "bias": bias})
+        
+
+        X, u, xdot, y, _ = generator.get_data(X0_train)
+        X_val, u_val, xdot_val, y_val, _ = generator_val.get_data(X0_val)
+        os.makedirs(os.path.dirname(args.dataset), exist_ok=True) if os.path.dirname(args.dataset) else None
+        np.save(
+            args.dataset,
+            {
+                "X": X,
+                "u": u,
+                "xdot": xdot,
+                "y": y,
+                "X_val": X_val,
+                "u_val": u_val,
+                "xdot_val": xdot_val,
+                "y_val": y_val,
+            },
+            allow_pickle=True,
+        )
 scaler_X = MinMaxScaler(feature_range=(-1, 1))
 scaler_u = StandardScaler()
 scaler_xdot = StandardScaler()
@@ -175,12 +211,6 @@ if args.dB is not None:
     b = get_noise_bound(y, args.dB)
     u = u + get_uniform_white_noise(u, a)
     y = y + get_uniform_white_noise(y, b)
-    traj_val = []
-    for x_, u_, y_, signal in trajectories_val:
-        u_ = u_ + get_uniform_white_noise(u_, a)
-        y_ = y_ + get_uniform_white_noise(y_, b)
-        traj_val.append((x_, u_, y_, signal))
-    trajectories_val = traj_val
 else:
     a = None
     b = None
@@ -237,7 +267,7 @@ with mlflow.start_run(run_name=args.run_name, experiment_id=experiment_id):
     mlflow.pytorch.autolog()
     models.append(model)
     mlflow.pytorch.log_model(model, "model")
-    metrics = compute_metrics(models, trajectories_val, dt, X_val, u_val, xdot_val, y_val, integrator=args.integrator)
+    metrics = compute_metrics(models, dt, X_val, u_val, xdot_val, y_val, integrator=args.integrator)
     print(metrics)
 
     if not args.no_forecast:
@@ -247,9 +277,9 @@ with mlflow.start_run(run_name=args.run_name, experiment_id=experiment_id):
         forecast_examples = args.forecast_examples
         t = np.array([dt * s for s in range(steps)])
 
-        generator_val = simple_experiment(name, time, steps, amplitude_val, f0_val)
+        generator_val = simple_experiment(name, time, steps, amplitude_val, f0_val, start_seed=args.seed+10**6)
         X0_val = sample_initial_states(forecast_examples, DIM,
-                                {"identifies": "uniform", "seed": args.seed + 1, "scale": scale, "bias": bias})
+                                {"identifies": "uniform", "seed": args.seed + + 10**6, "scale": scale, "bias": bias})
         _, _, _, _, trajectories_val = generator_val.get_data(X0_val)
         visualize_trajectory(model, forecast_examples, steps, dt, trajectories_val, a=None, integrator=args.integrator)
 

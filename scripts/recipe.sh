@@ -1,5 +1,3 @@
-python main.py --name ball --num_trajectories 16 --num_val_trajectories 100 --lr 1e-3 --epochs 8000 --repeat 1 --J default  --R default  --G mlp --output-weight .25 --run_name default --experiment recipe_6
-python main.py --name ball --num_trajectories 16 --num_val_trajectories 100 --lr 1e-3 --epochs 200 --repeat 1 --J default  --R default  --G mlp --output-weight .25 --run_name shorter --experiment recipe_6
-python main.py --name ball --num_trajectories 16 --num_val_trajectories 100 --lr 1e-3 --epochs 8000 --repeat 1 --J default  --R default  --G mlp --output-weight .25 --run_name shallow --experiment recipe_6 --depth 1
-python main.py --name ball --num_trajectories 16 --num_val_trajectories 100 --lr 1e-3 --epochs 8000 --repeat 1 --J linear  --R default  --G linear --output-weight .25 --run_name prior --experiment recipe_6
-python main.py --name ball --num_trajectories 16 --num_val_trajectories 100 --lr 1e-3 --epochs 2000 --repeat 1 --J default_kan  --R default_kan  --G kan --grad_H gradient_kan --output-weight .25 --run_name kan --experiment recipe_6 --hidden_dim 8
+python main.py --name ball --num_trajectories 32 --num_val_trajectories 100 --hidden_dim 16 --lr 1e-3 --epochs 4000 --repeat 1 --J default  --R default  --G mlp --output-weight .25 --run_name default --experiment recipe_f
+python main.py --name ball --num_trajectories 32 --num_val_trajectories 100 --hidden_dim 16 --lr 1e-3 --epochs 200 --repeat 1 --J default  --R default  --G mlp --output-weight .25 --run_name shorter --experiment recipe_f
+python main.py --name ball --num_trajectories 32 --num_val_trajectories 100 --hidden_dim 16 --lr 1e-3 --epochs 4000 --repeat 1 --J default  --R default  --G mlp --output-weight .25 --run_name shallow --experiment recipe_f --depth 1  

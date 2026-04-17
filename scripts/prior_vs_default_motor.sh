@@ -1,0 +1,2 @@
+python main.py --name motor --num_trajectories 64 --num_val_trajectories 100 --hidden_dim 16 --lr 1e-3 --epochs 4000 --repeat 1 --J default  --R linear  --G linear --output-weight .25 --run_name prior --experiment prior_vs_default_motor_c --no-normalize-x
+python main.py --name motor --num_trajectories 64 --num_val_trajectories 100 --hidden_dim 16 --lr 1e-3 --epochs 4000 --repeat 1 --J default  --R default  --G mlp --output-weight .25 --run_name default --experiment prior_vs_default_motor_c
