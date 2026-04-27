@@ -3,8 +3,7 @@
 > A framework for identifying nonlinear port-Hamiltonian systems using input-
 state-output data is introduced. The framework utilizes neural networks’
 universal approximation capacity to effectively represent complex dynamics
-in a structured way. We show that using the structure helps to make long-
-term predictions compared to baselines that do not incorporate physics. We
+in a structured way. We show that using the structure helps to make long-term predictions compared to baselines that do not incorporate physics. We
 also explore different architectures based on MLPs, KANs, and using prior
 information. The technique is validated through examples featuring non-
 linearities in either the skew-symmetric terms, the dissipative terms, or the
@@ -12,7 +11,7 @@ Hamiltonian.
 ---
 
 ## 1. Overview
-Port‑Hamiltonian (pH) systems provide an energy‑based description of multi‑physical processes and obey
+port‑Hamiltonian (pH) systems provide an energy‑based description of multi‑physical processes and obey
 
 $$
 \dot x = \bigl(J(x) - R(x)\bigr)\, \nabla_x H(x) + B(x)\,u,\qquad y = B^\top(x)\, \nabla_x H(x)
@@ -34,7 +33,7 @@ Our goal is to identify $J, R, H, B$ **without explicit supervision** using only
 * exploiting **modular priors** – e.g. *quadratic* or *partially known* Hamiltonians, sparse dissipation, etc.,
 * training with the PINNs approach so that the model simultaneously fits $\dot x$ and $y$.
 
-The resulting surrogate is **physically consistent**, extrapolates better than black‑box networks, and – in many cases – recovers the true parameters.
+The resulting surrogate is **physically consistent**, often extrapolates better than black‑box networks, and – in many cases – recovers the true parameters.
 
 ---
 
@@ -46,7 +45,8 @@ Port‑Hamilton-System-Identification-with-PINNS/
 ├─ data/               # example datasets (generated on first run)
 ├─ train/              # training loop in pytorch-lightning
 ├─ utils/              # collection of utility functions for metrics and forecasting
-├─ scripts/            # shell scripts to reproduce all paper figures
+├─ scripts/            # shell scripts to reproduce paper figures except scaling figures
+├─ main/               # runnable main file to train models
 └─ README.md           # you are here
 ```
 
@@ -55,15 +55,17 @@ Port‑Hamilton-System-Identification-with-PINNS/
 ## 3. Requirements
 * Python ≥ 3.9
 * [PyTorch](https://pytorch.org/) ≥ 2.2
-* [MLflow](https://mlflow.org/) ≥ 2.12
-
+* [MLflow](https://mlflow.org/) ≥ 2.12 
 ---
+Training a model with the recommended number of epochs (4000 für MLP-based models and 1000 for KAN-based) takes approximately one hour on a regular consumer PC.
+Moreover 4 gB of RAM are sufficient to carry out the experiments. For the scaling figures a high-performance compute cluster is necessary.
+
 
 ## 4. Quick start
 ```bash
 # clone repository
-$ git clone https://github.com/trawler0/Port-Hamilton-System-Identification-with-PINNS.git
-$ cd Port-Hamilton-System-Identification-with-PINNS
+$ git clone https://github.com/trawler0/ISO-pHNN.git
+$ cd ISO-PHNN
 
 # run all experiments from the paper
 $ bash scripts/run_all.sh
@@ -115,7 +117,7 @@ neural networks for constrained mechanical systems, in: arXiv preprint
 arXiv:2106.13188, 2021.
 ---
 
-## 9. Contact
+## 8. Contact
 For questions, feel free to open an issue or contact **Marco Roschkowski**:<br>
 <roschkowski@uni-wuppertal.de>
 
