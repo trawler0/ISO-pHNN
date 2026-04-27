@@ -1,4 +1,4 @@
-# Nonlinear Port‑Hamiltonian System Identification from Input–State–Output Data
+# Nonlinear Port‑Hamiltonian System Identification from Input–State–Output Data (ISO-pHNN)
 
 > A framework for identifying nonlinear port-Hamiltonian systems using input-
 state-output data is introduced. The framework utilizes neural networks’
